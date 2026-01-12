@@ -31,4 +31,22 @@ This project uses publicly available financial market data for Netflix (NFLX) fr
 - Call and put option chains for NFLX across multiple expiration dates
 - Fields include strike price, bid, ask, volume, and open interest
 - Option mid-prices calculated as the average of bid and ask prices
+## Methodology
+
+### Equity Return Analysis
+- Downloaded daily historical price data for NFLX
+- Computed daily log returns using adjusted close prices
+- Visualized return series to examine volatility behavior
+- Calculated skewness and kurtosis to assess distributional properties
+- Compared adjusted and unadjusted statistical measures
+
+---
+
+### Options & Volatility Analysis
+- Retrieved call and put option chains for multiple expiration dates
+- Computed option mid-prices as the average of bid and ask prices
+- Implemented Black–Scholes pricing formulas for calls and puts
+- Estimated implied volatility using a numerical root-finding (bisection) method
+- Handled edge cases where implied volatility could not be computed
+- Visualized put option volatility smiles across selected expiration dates
 
