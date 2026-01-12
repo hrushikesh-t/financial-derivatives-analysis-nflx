@@ -50,3 +50,23 @@ This project uses publicly available financial market data for Netflix (NFLX) fr
 - Handled edge cases where implied volatility could not be computed
 - Visualized put option volatility smiles across selected expiration dates
 
+## Results & Insights
+
+### Equity Return Behavior
+- Daily log returns exhibited noticeable volatility and non-normal behavior
+- Negative skewness indicated a higher probability of extreme negative returns
+- High kurtosis reflected fat tails, suggesting the presence of extreme market movements
+- Differences between adjusted and unadjusted statistics highlighted the importance of bias correction in financial return analysis
+
+**Insight:**  
+Return distributions deviate significantly from normality, reinforcing the need for risk-aware modeling rather than relying solely on mean–variance assumptions.
+
+---
+
+### Options & Implied Volatility
+- Implied volatility varied across strike prices and expiration dates
+- Numerical root-finding successfully estimated implied volatility for liquid options
+- Volatility smiles were observed for put options, particularly around at-the-money strikes
+
+**Insight:**  
+The presence of volatility smiles indicates that market participants price tail risk asymmetrically, reflecting higher perceived downside risk and uncertainty.
