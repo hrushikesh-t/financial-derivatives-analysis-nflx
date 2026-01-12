@@ -18,3 +18,17 @@ for Netflix (NFLX):
 Together, these analyses demonstrate an end-to-end financial data workflow, from raw market data
 collection to statistical analysis and visualization.
 
+## Dataset
+
+This project uses publicly available financial market data for Netflix (NFLX) from Yahoo Finance.
+
+### Stock Price Data
+- Daily historical prices for :contentReference[oaicite:0]{index=0} (ticker: NFLX)
+- Time period: January 2025 onward
+- Adjusted close prices used to compute daily log returns
+
+### Options Market Data
+- Call and put option chains for NFLX across multiple expiration dates
+- Fields include strike price, bid, ask, volume, and open interest
+- Option mid-prices calculated as the average of bid and ask prices
+
