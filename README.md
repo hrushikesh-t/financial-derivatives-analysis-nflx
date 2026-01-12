@@ -70,3 +70,20 @@ Return distributions deviate significantly from normality, reinforcing the need 
 
 **Insight:**  
 The presence of volatility smiles indicates that market participants price tail risk asymmetrically, reflecting higher perceived downside risk and uncertainty.
+## Tech Stack
+- R
+- Financial Data Analysis
+- Time Series & Return Analysis
+- Options Pricing
+- Black–Scholes Model
+- Numerical Methods (Bisection)
+- Data Visualization
+## How to Run
+1. Clone the repository
+2. Open the R Markdown file in RStudio
+3. Install required R packages (quantmod, zoo, TTR, etc.)
+4. Knit the `.Rmd` file to reproduce the analysis and results
+5. ## Code & Report
+- `FE515_FinalProject.Rmd` — Full analysis and implementation
+- `FE515_FinalProject.pdf` — Rendered report with results and visualizations
+
