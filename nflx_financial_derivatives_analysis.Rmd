@@ -1,0 +1,264 @@
+---
+title: "Final_project"
+author: "Hrushikesh Thanikonda"
+date: "2025-12-16"
+output: pdf_document
+---
+# Question 1: (50 points)
+
+## 1.1 
+Download the historical prices for the ticker ”NFLX” from 2025-01-01
+until now
+```{r}
+library(quantmod)
+getSymbols("NFLX",src = "yahoo",from="2025-01-01")
+head(NFLX)
+```
+
+## 1.2
+Calculate the daily log returns for NFLX using the adjusted close prices
+```{r}
+logRes <- na.omit(diff(log(Ad(NFLX))))
+head(logRes)
+```
+## 1.3
+plot the daily log returns in red line
+```{r}
+plot(logRes,main= "NEFX Daily Log Returns 2025",col="red",ylab="log returns")
+```
+
+# Question 2
+## 2.1
+Calculate the skewness and kurtosis of the NFLX daily log return from
+Question 1, for both adjusted and unadjusted ones. (See page 21 and 23
+of L6 and the corresponding HW problems)
+```{r}
+sampleSkewness <- function(x, adjusted = TRUE) {
+  n <- length(x)
+  xbar <- mean(x)
+  # second and third central moments
+  m2 <- mean((x - xbar)^2)
+  m3 <- mean((x - xbar)^3)
+  # unadjusted skewness
+  skewUnadj <- m3 / (m2^(3/2))
+  if (adjusted == TRUE) {
+    # adjusted skewness
+    skewAdj <- sqrt(n * (n - 1)) / (n - 2) * skewUnadj
+    return(skewAdj)
+  } else {
+    return(skewUnadj)
+  }
+}
+sampleKurtosis <- function(x, adjusted = TRUE) {
+  n <- length(x)
+  xbar <- mean(x)
+  # second and fourth central moments
+  m2 <- mean((x - xbar)^2)
+  m4 <- mean((x - xbar)^4)
+  # unadjusted kurtosis
+  kurtUnadj <- m4 / (m2^2)
+  if (adjusted == TRUE) {
+    # adjusted kurtosis
+    kurtAdj <- ((n - 1) / ((n - 2) * (n - 3))) *
+               ((n + 1) * kurtUnadj - 3 * (n - 1)) + 3
+    return(kurtAdj)
+  } 
+  else{
+    return(kurtUnadj)
+    }
+  }
+
+# Stats for Adjusted
+skewAdj <- sampleSkewness(logRes,adjusted = T)
+kurtAdj <- sampleKurtosis(logRes,adjusted = T)
+
+# Stats for Unadjusted
+skewUadj <- sampleSkewness(logRes,adjusted = F)
+kurtUadj <- sampleKurtosis(logRes,adjusted = F)
+```
+## 2.2 
+Report the results in 2.1 using a 2×2 table (either data frame or matrix)
+such that: The column names are ”SPY.skewness” and ”SPY.kurtosis”.
+And the row names are ”Unadjusted” and ”Adjusted”.
+```{r}
+#creating a resultant matrix
+resMat <-  matrix(c(skewAdj,kurtAdj,skewUadj,kurtUadj),nrow = 2, byrow = T)
+rownames(resMat) <- c( "Adjusted","Unadjusted")
+colnames(resMat) <- c("SPY.skewness", "SPY.kurtosis")
+print(resMat)
+```
+# Question 3
+## 3.1 
+Download options prices for ticker ”NFLX” for all expiration dates.
+```{r}
+nflxOptns <- getOptionChain("NFLX")
+names(nflxOptns)
+head(nflxOptns$calls)
+```
+
+## 3.2
+For calls and puts of each expiration date, add a column of ”Price”, which
+is the average of “Bid” and “Ask”
+```{r}
+nflxOptns$calls$Price <- (nflxOptns$calls$Bid+nflxOptns$calls$Ask)/2
+nflxOptns$puts$Price <- (nflxOptns$puts$Bid+nflxOptns$puts$Ask)/2
+head(nflxOptns$calls)
+head(nflxOptns$puts)
+```
+
+## 3.3
+For calls and puts of each expiration date, add a column of “ImpliedVol”,
+which is the implied volatility of the corresponding options calculated from
+root finding methods. (Method is not limited, but you may need to handle
+the problem when price difference has the same sign on the end of interval)
+```{r}
+# Creating Bisection Call and Put 
+bs.call <- function(S0, K, T1, sigma, r){
+  d1 <- (log(S0/K) + (r + 0.5*sigma^2)*T1)/(sigma*sqrt(T1))
+  d2 <- d1 - sigma*sqrt(T1)
+  S0*pnorm(d1) - exp(-r*T1)*K*pnorm(d2)
+}
+
+bs.put <- function(S0, K, T1, sigma, r){
+  bs.call(S0, K, T1, sigma, r) - S0 + K*exp(-r*T1)
+}
+#bisection modified function 
+bisection.new <- function(f, a, b, tol = 0.001, N.max = 100){
+
+  f.a <- f(a)
+  f.b <- f(b)
+
+  # Modified part (Lecture 9)
+  if (is.na(f.a * f.b) || f.a * f.b > 0) {
+    return(NA)
+  } else if (f.a == 0) {
+    return(a)
+  } else if (f.b == 0) {
+    return(b)
+  }
+
+  for (n in 1:N.max) {
+    c <- (a + b) / 2
+    f.c <- f(c)
+
+    if (f.c == 0 || abs(b - a) < tol) {
+      break
+    }
+
+    if (f.a * f.c < 0) {
+      b <- c
+      f.b <- f.c
+    } else {
+      a <- c
+      f.a <- f.c
+    }
+  }
+  return(c)
+}
+
+
+# Implied Volume 
+implied.vol <- function(type, S0, K, T1, r, price){
+
+  price.diff <- function(sigma){
+    if(type == "call"){
+      bs.call(S0, K, T1, sigma, r) - price
+    } else {
+      bs.put(S0, K, T1, sigma, r) - price
+    }
+  }
+  # handling failure if there is no sign change
+  if (is.na(price.diff(0.01) * price.diff(5)) ||
+      price.diff(0.01) * price.diff(5) > 0) {
+    return(NA)
+  }
+  bisection.new(price.diff, 0.01, 5)
+}
+
+# Spot price of NFLX
+S0 <- getQuote("NFLX")$Last
+# Risk-free rate (constant, acceptable)
+r <- 0.05
+tCall <- as.numeric(
+  as.Date(nflxOptns$calls$Expiration) - Sys.Date()
+) / 365
+
+tPut <- as.numeric(
+  as.Date(nflxOptns$puts$Expiration) - Sys.Date()
+) / 365
+
+nflxOptns$calls$ImpliedVol <- mapply(implied.vol,
+                                     type = "call",
+                                     S0 = S0,
+                                     K  = nflxOptns$calls$Strike,
+                                     T1 = tCall,
+                                     r  = r,
+                                     price = nflxOptns$calls$Price
+                                     )
+
+nflxOptns$puts$ImpliedVol <- mapply(implied.vol,
+                                    type = "put",
+                                    S0 = S0,
+                                    K = nflxOptns$puts$Strike,
+                                    T1 = tPut,
+                                    r  = r,
+                                    price = nflxOptns$puts$Price
+                                    )
+
+#checking if Implied Volatility is added 
+head(nflxOptns$calls)
+head(nflxOptns$puts)
+```
+## 3.4
+Choose 3 expiration date for put options, plot volatility smiles (Strike in
+x-axis and ImpliedVol in y-axis, similar to call smiles on page 22 of L9).
+```{r}
+#defining index to exclude NA from plot
+idx <- which(
+  nflxOptns$puts$Strike > 0.5*S0 &
+  nflxOptns$puts$Strike < 1.5*S0 &
+  nflxOptns$puts$ImpliedVol < 1
+)
+
+plot(NA,
+     xlim = c(50,200),
+     ylim = c(0,1),
+     xlab = "Strike",
+     ylab = "ImpliedVol",
+     main = "NFLX Put Option Volatility Smile"
+)
+
+# Adding implied volatility curve
+lines(
+  nflxOptns$puts$Strike[idx],
+  nflxOptns$puts$ImpliedVol[idx],
+  col = "blue"
+)
+
+legend(
+  "topright",
+  legend = "NFLX Puts",
+  fill = "blue"
+)
+
+```
+
+## 3.5
+Keep fields “Strike”,“Bid”,“Ask”, “Price”, and “ImpliedVol” and save the
+calls and puts of each expiration date in .csv file. Submit one of the .csv
+file also. (see page 19-20 in L5, format of file names is not restricted)
+```{r}
+# Save CALL options
+write.csv(
+  nflxOptns$calls[, c("Strike", "Bid", "Ask", "Price", "ImpliedVol")],
+  "NFLX_calls.csv",
+  row.names = FALSE
+)
+
+# Save PUT options
+write.csv(
+  nflxOptns$puts[, c("Strike", "Bid", "Ask", "Price", "ImpliedVol")],
+  "NFLX_puts.csv",
+  row.names = FALSE
+)
+```
