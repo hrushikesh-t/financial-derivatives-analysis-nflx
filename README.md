@@ -83,7 +83,7 @@ The presence of volatility smiles indicates that market participants price tail 
 2. Open the R Markdown file in RStudio
 3. Install required R packages (quantmod, zoo, TTR, etc.)
 4. Knit the `.Rmd` file to reproduce the analysis and results
-5. ## Code & Report
-- `FE515_FinalProject.Rmd` — Full analysis and implementation
-- `FE515_FinalProject.pdf` — Rendered report with results and visualizations
+## Code & Report
+- `nflx_financial_derivatives_analysis.Rmd` — Full analysis and implementation
+- `nflx_financial_derivatives_analysis.pdf` — Rendered report with results and visualizations
 
